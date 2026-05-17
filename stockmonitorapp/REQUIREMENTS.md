@@ -56,18 +56,23 @@ Extend an existing Streamlit stock dashboard into a production-grade MLOps platf
 |---|---|
 | Stock data fetch | OHLCV data from Yahoo Finance via `yfinance` for 7 configurable tickers |
 | Moving averages | 50-day and 200-day MA plotted against closing price |
-| Volume chart | Volume bar chart overlaid below price chart |
 | Interactive charts | Toggle between static (matplotlib) and interactive (altair) charts |
 | Configurable period | Time period selector: 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max |
-| 5-day snapshot | Table showing the last 5 trading days of OHLCV data |
-| Correlation heatmap | Seaborn heatmap of closing price correlations across selected tickers |
+| Correlation heatmap | Heatmap of closing price correlations across selected tickers |
 | Yearly % changes | Year-on-year percentage change table (5, 10, or 20-year lookback) |
-| Caching | `@st.cache_data` / `@st.cache_resource` for performance |
-| Docker support | Single-container Dockerfile (port 8501) |
 
-**Limitation of v0 deployment:** Streamlit Cloud spins down inactive apps requiring a manual wake-up, making it unsuitable for a persistent prediction service.
+**Limitation of v0 deployment:**
+Streamlit Cloud spins down inactive apps requiring a manual wake-up, making it unsuitable for a persistent prediction service.
 
-**Target state (v1):** Full MLOps platform deployed on a cloud VM (Oracle Free Tier or equivalent) running all services via `docker-compose up` — FastAPI prediction service, MLflow model registry, Prefect-orchestrated pipelines, and Evidently AI drift reports. The Streamlit UI is augmented and served from the same VM, replacing the Streamlit Cloud deployment.
+**Target state (v1) — two-phase deployment:**
+
+**Phase 9a (Hybrid):** 
+1. ML backend - FastAPI, MLflow, Prefect, Postgres, MinIO deployed on a cloud VM.
+2. Streamlit Cloud retained as the UI, calling the VM API over HTTPS.
+
+**Phase 9b (Full VM):** 
+1. Streamlit service migrated to the same VM (Streamlit Cloud retired)
+2. All services self-contained.
 
 ---
 
@@ -77,17 +82,17 @@ Extend an existing Streamlit stock dashboard into a production-grade MLOps platf
 - Multi-model comparison with tracked metrics (RMSE, MAE, MAPE, directional accuracy)
 - Automated model promotion: best model → MLflow `Production` stage
 - REST endpoint for N-day ahead price predictions
-- Scheduled drift monitoring with HTML report generation
-- All services containerised and runnable with `docker-compose up`
+- Scheduled drift monitoring with report generation
+- All services containerized and runnable with `docker-compose up`
 
 **Non-Goals (v1.0):**
 - Real-time or intraday streaming data
-- Multi-cloud or managed cloud services (AWS RDS, GCP Vertex AI, Azure ML, etc.)
 - Authentication or authorisation on any service
-- Automated retraining triggered by drift alert *(planned for v2.0)*
 - Financial advice or trading signal generation
 - Assets outside equities (crypto, forex, commodities)
-- Streamlit Cloud as deployment target *(retired — replaced by VM-based deployment in Phase 9)*
+- Automated retraining triggered by drift alert *(planned for v2.0)*
+- Streamlit Cloud as permanent deployment target *(retained as UI host in Phase 9a; retired in Phase 9b)*
+- Managed cloud platform services (AWS RDS, GCP Vertex AI, Azure ML, etc.) — all services run self-hosted via Docker Compose on the VM
 
 ---
 
@@ -122,7 +127,7 @@ Yahoo Finance API
 | Service | Purpose | Port |
 |---|---|---|
 | `postgres` | Backend DB for MLflow + Prefect | 5432 |
-| `minio` | S3-compatible artifact store for MLflow | 9000 |
+| `minio` | Artifact store for MLflow | 9000 |
 | `mlflow` | Experiment tracking + model registry | 5000 |
 | `prefect` | Pipeline orchestration UI | 4200 |
 | `api` | FastAPI prediction service | 8000 |
@@ -284,7 +289,8 @@ Yahoo Finance API
 | 6 | Drift Monitoring | `monitoring/evidently_config.py`, `pipelines/monitoring_pipeline.py` |
 | 7 | Dashboard Update | 3 new tabs in `app.py` (Predictions, Model Registry, Drift Reports) |
 | 8 | Tests | `tests/test_data_pipeline.py`, `test_models.py`, `test_api.py` |
-| 9 | Cloud VM Deployment | Provision VM (Oracle Free Tier or equivalent), push via Docker Compose, configure DNS + reverse proxy (Nginx/Caddy), retire Streamlit Cloud deployment |
+| 9a | Hybrid Deployment | Provision VM, deploy backend services (FastAPI, MLflow, Prefect, Postgres, MinIO) via Docker Compose, configure CORS on FastAPI, point Streamlit Cloud app at VM API |
+| 9b | Full VM Migration | Add Streamlit service to Docker Compose, configure reverse proxy (Nginx/Caddy), set up DNS, retire Streamlit Cloud deployment |
 
 Phases 1–3 are sequential. Phases 4 and 5 may run in parallel after Phase 3. Phase 6 may start in parallel with Phase 5. Phase 7 depends on Phases 5 and 6. Phase 8 runs alongside all phases.
 
@@ -301,6 +307,7 @@ Phases 1–3 are sequential. Phases 4 and 5 may run in parallel after Phase 3. P
 | R-005 | MinIO misconfiguration causes model save failures | Low | High | Smoke test artifact upload; document bucket setup in `.env.example` |
 | R-006 | Prophet installation conflicts with PyTorch dependencies | Medium | Low | Document known conflicts in `requirements.txt` comments |
 | R-007 | Cloud VM free-tier resource limits constrain model training | Medium | Medium | Profile memory usage locally first; offload LSTM training to a separate step or reduce model size if needed |
+| R-008 | CORS misconfiguration blocks Streamlit Cloud from calling VM API (Phase 9a) | Medium | High | Configure FastAPI `CORSMiddleware` with explicit Streamlit Cloud origin; test with browser dev tools before Phase 9b |
 
 ---
 
