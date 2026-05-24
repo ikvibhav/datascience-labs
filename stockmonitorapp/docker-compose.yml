@@ -12,6 +12,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -47,7 +48,9 @@ services:
   # Experiment tracking server and model registry
   # Artifacts stored in MinIO; metadata stored in Postgres
   mlflow:
-    image: ghcr.io/mlflow/mlflow:v2.22.0
+    build:
+      context: .
+      dockerfile: docker/mlflow/Dockerfile
     container_name: stockmonitor_mlflow
     restart: unless-stopped
     depends_on:
@@ -56,14 +59,13 @@ services:
       minio:
         condition: service_healthy
     environment:
-      MLFLOW_BACKEND_STORE_URI: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       MLFLOW_DEFAULT_ARTIFACT_ROOT: s3://${MLFLOW_BUCKET}/
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
       MLFLOW_S3_ENDPOINT_URL: http://minio:9000
     command: >
       mlflow server
-      --backend-store-uri postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      --backend-store-uri postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/mlflow
       --default-artifact-root s3://${MLFLOW_BUCKET}/
       --host 0.0.0.0
       --port 5000
@@ -88,7 +90,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      PREFECT_SERVER_DATABASE_CONNECTION_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      PREFECT_SERVER_DATABASE_CONNECTION_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/prefect
       PREFECT_API_URL: http://0.0.0.0:4200/api
     command: prefect server start --host 0.0.0.0 --port 4200
     ports:
@@ -140,7 +142,7 @@ services:
   streamlit:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/streamlit/Dockerfile
     container_name: stockmonitor_streamlit
     restart: unless-stopped
     depends_on:

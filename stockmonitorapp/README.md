@@ -83,7 +83,7 @@ streamlit run app.py
 
 ### Run with Docker (single container)
 ```sh
-docker build -t stockmonitor .
+docker build -t stockmonitor -f docker/streamlit/Dockerfile .
 docker run -p 8501:8501 stockmonitor
 ```
 
