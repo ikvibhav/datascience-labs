@@ -141,13 +141,13 @@ Yahoo Finance API
 
 #### Data Ingestion
 
-| ID | Requirement |
-|---|---|
-| FR-DI-001 | Fetch OHLCV data for configurable tickers from Yahoo Finance via `yfinance` |
-| FR-DI-002 | Validate fetched data against a schema (column names, dtypes, no nulls in Close/Volume) |
-| FR-DI-003 | Save raw data to `data/raw/{ticker}_{date}.csv` |
-| FR-DI-004 | Save a reference window snapshot to `data/reference/` on first run |
-| FR-DI-005 | Ingestion flow shall be schedulable via Prefect and runnable manually |
+| ID | Requirement | Status |
+|---|---|---|
+| FR-DI-001 | Fetch OHLCV data for configurable tickers from Yahoo Finance via `yfinance` | Done |
+| FR-DI-002 | Validate fetched data against a schema (column names, dtypes, no nulls in Close/Volume) | Ongoing |
+| FR-DI-003 | Save raw data to a data folder `data/raw/{ticker}_{date}.csv` | Done |
+| FR-DI-004 | Save a reference window snapshot to `data/reference/` on first run | Done |
+| FR-DI-005 | Ingestion flow shall be schedulable via Prefect and runnable manually | Pending |
 
 #### Feature Engineering
 
