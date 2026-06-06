@@ -136,4 +136,6 @@ def data_ingestion_pipeline(ticker: list[str], period: str, save_to_file: bool) 
 
 
 if __name__ == "__main__":
+    # Can also be called manually and automated from prefect UI
+    # Implements: FR-DI-005
     data_ingestion_pipeline(ticker=["AAPL", "MSFT"], period="1y", save_to_file=True)

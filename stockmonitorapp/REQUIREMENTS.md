@@ -147,7 +147,7 @@ Yahoo Finance API
 | FR-DI-002 | Validate fetched data against a schema (column names, dtypes, no nulls in Close/Volume) | Done |
 | FR-DI-003 | Save raw data to a data folder `data/raw/{ticker}_{date}.csv` | Done |
 | FR-DI-004 | Save a reference window snapshot to `data/reference/` on first run | Done |
-| FR-DI-005 | Ingestion flow shall be schedulable via Prefect and runnable manually | Pending |
+| FR-DI-005 | Ingestion flow shall be schedulable via Prefect and runnable manually | Done |
 
 #### Feature Engineering
 
