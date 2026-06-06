@@ -31,6 +31,33 @@ setup:
 		echo ".env already exists, skipping"; \
 	fi
 
+python-venv:
+	@if [ -d venv ]; then \
+		echo "Virtual environment already exists, skipping"; \
+	else \
+		python3 -m venv venv --prompt=stockmonitorapp && \
+		./venv/bin/pip install -r requirements.txt; \
+	fi
+
+python-venv-clean:
+	rm -rf venv
+	@echo "Virtual environment deleted"
+
+prefect:
+	@echo "Installing Prefect CLI in Python virtual environment..."
+	./venv/bin/pip install prefect
+	@echo "Prefect CLI installed"
+	./venv/bin/prefect config set PREFECT_API_URL=http://localhost:4200/api
+	@echo "Prefect API URL set to http://localhost:4200/api"
+	./venv/bin/prefect work-pool inspect local-process >/dev/null 2>&1 || \
+	./venv/bin/prefect work-pool create local-process --type process
+	@echo "Prefect work pool 'local-process' ready"
+	./venv/bin/prefect deploy --all
+	@echo "Prefect flows deployed"
+
+prefect-worker:
+	./venv/bin/prefect worker start --pool local-process
+
 # ── Build ─────────────────────────────────────────────────────────────────────
 build:
 	docker compose build

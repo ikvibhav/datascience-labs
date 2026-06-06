@@ -1,8 +1,8 @@
-from prefect import flow, task
+from pathlib import Path
+
 import pandas as pd
 import yfinance as yf
-
-from pathlib import Path
+from prefect import flow, task
 
 EXPECTED_COLUMNS = ["Open", "High", "Low", "Close", "Volume"]
 FOLDER_PATH = Path("data/raw/")

@@ -91,13 +91,19 @@ docker run -p 8501:8501 stockmonitor
 
 ## Full Stack Setup (v1 — Docker Compose)
 
-> Available after Phase 1 is complete.
+### Quick Start
+
+For ease of use, make commands have been used. Clone the repository and run the following -
 
 ```sh
-cp .env.example .env
-# Edit .env with your configuration
-docker-compose up
+make setup
+make build
+make python-venv
+make prefect
 ```
+
+
+### Supported Webpages 
 
 | Service | URL |
 |---|---|
