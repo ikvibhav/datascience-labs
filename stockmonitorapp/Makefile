@@ -33,41 +33,41 @@ setup:
 
 # ── Build ─────────────────────────────────────────────────────────────────────
 build:
-	docker-compose build
+	docker compose build
 
 # ── Lifecycle ─────────────────────────────────────────────────────────────────
 up:
-	docker-compose up -d postgres minio mlflow prefect streamlit
+	docker compose up -d postgres minio mlflow prefect streamlit
 
 down:
-	docker-compose down
+	docker compose down
 
 clean-volumes:
-	docker-compose down -v
+	docker compose down -v
 	@echo "All services stopped and data volumes deleted"
 
 restart:
-	docker-compose restart
+	docker compose restart
 
 check-images:
-	docker-compose images
+	docker compose images
 
 # ── Observability ─────────────────────────────────────────────────────────────
 ps:
-	docker-compose ps
+	docker compose ps
 
 # Usage: make logs         (all services)
 #        make logs s=mlflow (single service)
 logs:
-	docker-compose logs -f $(s)
+	docker compose logs -f $(s)
 
 # ── MinIO Init ────────────────────────────────────────────────────────────────
 minio-init:
 	@echo "Creating MLflow artifacts bucket in MinIO..."
-	docker-compose exec minio mc alias set local http://localhost:9000 \
+	docker compose exec minio mc alias set local http://localhost:9000 \
 		$$(grep MINIO_ROOT_USER .env | cut -d= -f2) \
 		$$(grep MINIO_ROOT_PASSWORD .env | cut -d= -f2)
-	docker-compose exec minio mc mb --ignore-existing local/$$(grep MLFLOW_BUCKET .env | cut -d= -f2)
+	docker compose exec minio mc mb --ignore-existing local/$$(grep MLFLOW_BUCKET .env | cut -d= -f2)
 	@echo "Bucket ready"
 
 # ── Open UIs ──────────────────────────────────────────────────────────────────
