@@ -59,6 +59,10 @@ prefect-worker:
 	./venv/bin/prefect worker start --pool local-process
 
 # ── Build ─────────────────────────────────────────────────────────────────────
+pytest:
+	./venv/bin/pytest tests/
+
+# ── Build ─────────────────────────────────────────────────────────────────────
 build:
 	docker compose build
 

@@ -151,13 +151,38 @@ Yahoo Finance API
 
 #### Feature Engineering
 
-| ID | Requirement |
-|---|---|
-| FR-FE-001 | Compute lag features for Close price: 1, 5, 10, 20 days |
-| FR-FE-002 | Compute RSI (14-day), MACD (12/26/9), Bollinger Bands (20-day), and ATR (14-day) |
-| FR-FE-003 | Add calendar features: day-of-week, month, quarter |
-| FR-FE-004 | Feature toggles shall be configurable via `configs/features_config.yaml` |
-| FR-FE-005 | Save processed datasets to `data/processed/{ticker}_{date}.csv` |
+| ID | Requirement | Status |
+|---|---|---|
+| FR-FE-001 | Compute lag features for Close price: 1, 5, 10, 20 days |Done |
+| FR-FE-002 | Compute RSI (14-day), MACD (12/26/9), Bollinger Bands (20-day), and ATR (14-day) ||
+| FR-FE-003 | Add calendar features: day-of-week, month, quarter ||
+| FR-FE-004 | Feature toggles shall be configurable via `configs/features_config.yaml` ||
+| FR-FE-005 | Save processed datasets to `data/processed/{ticker}_{date}.csv` ||
+
+##### FR-FE-001 Implementation Section
+
+**Implementation file:** `utils/feature_engineering.py`
+
+**Primary function:** `compute_close_lag_features(data, lags=(1, 5, 10, 20), close_column="Close", drop_na=False)`
+
+**Output columns:**
+- `Close_lag_1`
+- `Close_lag_5`
+- `Close_lag_10`
+- `Close_lag_20`
+
+**Implementation notes:**
+- Lag features are computed with `shift(lag)` to ensure historical-only inputs.
+- The function returns a copy of the dataframe and does not mutate input data.
+- Warmup rows with nulls are expected for the first 20 rows by default.
+- If `drop_na=True`, rows missing lag values are removed.
+
+**Acceptance criteria:**
+1. All four lag columns are present after transformation.
+2. For any timestamp `t`, `Close_lag_k[t] == Close[t-k]` for each configured lag `k`.
+3. No future values are used when computing lag features.
+4. Output dataframe retains original columns and appends lag columns.
+5. Function raises a clear error when the Close column is missing.
 
 #### Model Training
 
