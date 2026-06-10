@@ -4,6 +4,11 @@ from collections.abc import Iterable
 
 import pandas as pd
 
+# ---------------------------------------------------------------------------
+# FR-FE-001: Lagging  features
+# ---------------------------------------------------------------------------
+
+
 DEFAULT_CLOSE_LAGS = (1, 5, 10, 20)
 
 
@@ -95,8 +100,8 @@ def compute_rsi(
 
     RSI measures momentum by comparing the average gain vs average loss over a
     rolling window. The formula is:
-        RS  = avg_gain / avg_loss  (Wilder smoothing: ewm with alpha=1/window)
-        RSI = 100 - 100 / (1 + RS)
+        RS = average gain / average loss
+        RSI = 100 - (100 / (1 + RS))
 
     Values range from 0 to 100. Conventionally:
         >70 → overbought (price rose fast relative to recent history)
@@ -112,6 +117,7 @@ def compute_rsi(
     Returns:
         A copy of the dataframe with an ``rsi_<window>`` column added.
     """
+    # 1. Validate inputs: data must not be empty, close column must exist, window must be positive.
     if data.empty:
         raise ValueError("Input data is empty.")
     if close_column not in data.columns:
@@ -119,21 +125,26 @@ def compute_rsi(
     if window <= 0:
         raise ValueError("window must be a positive integer.")
 
+    # 2. Copy data to avoid modifying original and extract close series.s
     engineered = data.copy()
     close = engineered[close_column]
 
-    # Daily price change: positive = gain, negative = loss.
+    # 3. Daily price change: positive = gain, negative = loss.
+    # diff() computes the difference between current row and previous row
+    # Eg, For close = [100, 101, 99, 102], delta = [NaN, +1, -2, +3]
     delta = close.diff()
 
-    # Separate gains (positive deltas) and losses (absolute negative deltas).
+    # 4. Separate gains and losses, treating non-gains as zero and non-losses as zero.
+    # Eg, For delta = [NaN, +1, -2, +3], gain = [NaN, 1, 0, 3], loss = [NaN, 0, 2, 0]
     gain = delta.clip(lower=0)
     loss = (-delta).clip(lower=0)
 
-    # Wilder smoothing: exponential moving average with alpha = 1/window.
+    # 5. Wilder smoothing: exponential moving average with alpha = 1/window.
     # min_periods=window ensures the first value only appears after a full window.
     avg_gain = gain.ewm(alpha=1 / window, min_periods=window, adjust=False).mean()
     avg_loss = loss.ewm(alpha=1 / window, min_periods=window, adjust=False).mean()
 
+    # 6. Compute RS and RSI, handling the case where avg_loss is zero to avoid division by zero.
     rs = avg_gain / avg_loss
     engineered[f"rsi_{window}"] = 100 - (100 / (1 + rs))
 
@@ -319,5 +330,3 @@ def compute_atr(
     ).mean()
 
     return engineered
-
-
