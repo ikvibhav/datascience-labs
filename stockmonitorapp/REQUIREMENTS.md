@@ -154,8 +154,8 @@ Yahoo Finance API
 | ID | Requirement | Status |
 |---|---|---|
 | FR-FE-001 | Compute lag features for Close price: 1, 5, 10, 20 days |Done |
-| FR-FE-002 | Compute RSI (14-day), MACD (12/26/9), Bollinger Bands (20-day), and ATR (14-day) |TBD|
-| FR-FE-003 | Add calendar features: day-of-week, month, quarter ||
+| FR-FE-002 | Compute RSI (14-day), MACD (12/26/9), Bollinger Bands (20-day), and ATR (14-day) |Done|
+| FR-FE-003 | Add calendar features: day-of-week, month, quarter |Done|
 | FR-FE-004 | Feature toggles shall be configurable via `configs/features_config.yaml` ||
 | FR-FE-005 | Save processed datasets to `data/processed/{ticker}_{date}.csv` ||
 

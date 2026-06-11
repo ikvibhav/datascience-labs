@@ -330,3 +330,62 @@ def compute_atr(
     ).mean()
 
     return engineered
+
+
+# ---------------------------------------------------------------------------
+# FR-FE-003: Calendar features
+# ---------------------------------------------------------------------------
+
+def compute_calendar_features(
+    data: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Add calendar features extracted from the date index.
+
+    This function assumes the index is a DateTimeIndex or that the date column
+    can be parsed as datetime. It adds the following features:
+        - day_of_week (0=Monday, 6=Sunday)
+        - day_of_month (1-31)
+        - day_of_year (1-366)
+        - month (1-12)
+        - quarter (1-4)
+        - is_month_start (bool)
+        - is_month_end (bool)
+        - is_quarter_start (bool)
+        - is_quarter_end (bool)
+        - is_year_start (bool)
+        - is_year_end (bool)
+    
+    Args:
+        data: Input market data with a DatetimeIndex or date column.
+    
+    Returns:
+        A copy of the dataframe with new calendar feature columns added.
+    """
+
+    # 1. Ensure data not empty
+    if data.empty:
+        raise ValueError("Input data is empty.")
+
+    # 2. Create a copy to avoid modifying original
+    engineered = data.copy()
+
+    # 3. Extract date index. If index is not a DatetimeIndex, raise an error
+    if not isinstance(engineered.index, pd.DatetimeIndex):
+        raise ValueError("Data index must be a DatetimeIndex to compute calendar features.")
+    dt_index = engineered.index
+
+    # 4. Extract calendar features using DateTimeIndex attributes.
+    engineered["day_of_week"] = dt_index.dayofweek
+    engineered["day_of_month"] = dt_index.day
+    engineered["day_of_year"] = dt_index.dayofyear
+    engineered["month"] = dt_index.month
+    engineered["quarter"] = dt_index.quarter
+    engineered["is_month_start"] = dt_index.is_month_start
+    engineered["is_month_end"] = dt_index.is_month_end
+    engineered["is_quarter_start"] = dt_index.is_quarter_start
+    engineered["is_quarter_end"] = dt_index.is_quarter_end
+    engineered["is_year_start"] = dt_index.is_year_start
+    engineered["is_year_end"] = dt_index.is_year_end
+
+    return engineered

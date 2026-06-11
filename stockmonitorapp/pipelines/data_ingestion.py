@@ -96,9 +96,20 @@ def validate_data(data: pd.DataFrame) -> bool:
         return False
 
     # 3. Check for null values in the expected columns
-    if data[EXPECTED_COLUMNS].isnull().any().any():
-        print("Data validation failed: Null values found in the expected columns.")
-        return False
+    # If today's or yesterday's data is missing some values (e.g., due to market hours)
+    # we can allow nulls in the last row but not in the historical data
+    today_str = pd.Timestamp.now().strftime("%Y-%m-%d")
+    yesterday_str = (pd.Timestamp.now() - pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+    if data.index[-1].strftime("%Y-%m-%d") == today_str or data.index[-1].strftime("%Y-%m-%d") == yesterday_str:
+        print("Latest data point is from today or yesterday, allowing nulls in the last row if present.")
+        past_data = data.iloc[:-1]
+        if past_data[EXPECTED_COLUMNS].isnull().any().any():
+            print("Data validation failed: Null values found in the expected columns of historical data.")
+            return False
+    else:
+        if data[EXPECTED_COLUMNS].isnull().any().any():
+            print("Data validation failed: Null values found in the expected columns.")
+            return False
 
     print("Data validation successful.")
     return True

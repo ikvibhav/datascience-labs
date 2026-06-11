@@ -13,6 +13,7 @@ from pipelines.data_ingestion import (
 from utils.feature_engineering import (
     compute_atr,
     compute_bollinger_bands,
+    compute_calendar_features,
     compute_close_lag_features,
     compute_macd,
     compute_rsi,
@@ -35,7 +36,9 @@ def _build_filename(ticker: str, period: str, suffix: str = "") -> str:
 def _coerce_single_ticker_frame(
     data: pd.DataFrame, ticker: str
 ) -> pd.DataFrame:
-    """Flatten yfinance output to a single-ticker OHLCV frame."""
+    """Extract a single ticker OHLCV frame from yfinance output."""
+
+    # 1. Multi-ticker downloads return MultiIndex columns: (field, ticker).
     if isinstance(data.columns, pd.MultiIndex):
         level_1 = set(data.columns.get_level_values(1))
         if ticker not in level_1:
@@ -46,6 +49,7 @@ def _coerce_single_ticker_frame(
             )
         data = data.xs(ticker, axis=1, level=1)
 
+    # 2. Check expected columns are present
     missing = [c for c in EXPECTED_COLUMNS if c not in data.columns]
     if missing:
         raise ValueError(
@@ -63,11 +67,13 @@ def build_feature_dataframe(
     drop_na: bool = False,
 ) -> pd.DataFrame:
     """Apply all FR-FE-001 and FR-FE-002 features in a fixed sequence."""
-    featured = compute_close_lag_features(data, lags=lag_days, drop_na=False)
+    featured = compute_calendar_features(data)
+    featured = compute_close_lag_features(featured, lags=lag_days, drop_na=False)
     featured = compute_rsi(featured, window=14)
     featured = compute_macd(featured, fast=12, slow=26, signal=9)
     featured = compute_bollinger_bands(featured, window=20, num_std=2.0)
     featured = compute_atr(featured, window=14)
+
 
     if drop_na:
         featured = featured.dropna()
@@ -76,8 +82,13 @@ def build_feature_dataframe(
 
 
 @task
-def save_processed_data(data: pd.DataFrame, ticker: str, period: str) -> Path:
-    filename = _build_filename(ticker=ticker, period=period, suffix="features")
+def save_processed_data(
+    data: pd.DataFrame, tickers: list[str], period: str
+) -> Path:
+    ticker_label = "_".join(tickers)
+    filename = _build_filename(
+        ticker=ticker_label, period=period, suffix="features"
+    )
     output = PROCESSED_PATH / filename
     data.to_csv(output, index=True)
     print(f"Processed feature data saved: {output}")
@@ -86,7 +97,7 @@ def save_processed_data(data: pd.DataFrame, ticker: str, period: str) -> Path:
 
 @flow
 def feature_engineering_pipeline(
-    ticker: str,
+    tickers: list[str],
     period: str = "1y",
     save_raw: bool = True,
     save_processed: bool = True,
@@ -96,28 +107,36 @@ def feature_engineering_pipeline(
     End-to-end ingestion + feature generation pipeline.
 
     Steps:
-    1) Download OHLCV data for one ticker.
-    2) Flatten/validate columns.
-    3) Compute lag + technical indicator features.
-    4) Optionally save raw and processed CSV outputs.
+    1) Download OHLCV data for one or more tickers.
+    2) Validate schema once on the downloaded frame.
+    3) Split per ticker and compute all feature sets per ticker.
+    4) Concatenate into one dataframe and optionally save outputs.
     """
-    # Reuse FR-DI tasks for download + base validation.
-    downloaded = fetch_data(ticker=[ticker], period=period)
+    if not tickers:
+        raise ValueError("tickers must contain at least one symbol.")
+
+    downloaded = fetch_data(ticker=tickers, period=period)
     if not validate_data(downloaded):
         raise ValueError("Data ingestion validation failed.")
 
-    flat_data = _coerce_single_ticker_frame(downloaded, ticker=ticker)
-
     if save_raw:
-        save_data(flat_data, build_filename([ticker], period))
+        save_data(downloaded, build_filename(tickers, period))
 
-    featured = build_feature_dataframe(flat_data, drop_na=drop_na)
+    per_ticker_frames: list[pd.DataFrame] = []
+    for symbol in tickers:
+        ticker_data = _coerce_single_ticker_frame(downloaded, ticker=symbol)
+        featured = build_feature_dataframe(ticker_data, drop_na=drop_na)
+        featured = featured.copy()
+        featured["Ticker"] = symbol
+        per_ticker_frames.append(featured)
+
+    combined = pd.concat(per_ticker_frames, axis=0).sort_index()
 
     if save_processed:
-        save_processed_data(featured, ticker=ticker, period=period)
+        save_processed_data(combined, tickers=tickers, period=period)
 
-    return featured
+    return combined
 
 
 if __name__ == "__main__":
-    feature_engineering_pipeline(ticker="AAPL", period="1y")
+    feature_engineering_pipeline(tickers=["AAPL", "MSFT"], period="1y")
