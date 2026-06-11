@@ -157,7 +157,7 @@ Yahoo Finance API
 | FR-FE-002 | Compute RSI (14-day), MACD (12/26/9), Bollinger Bands (20-day), and ATR (14-day) |Done|
 | FR-FE-003 | Add calendar features: day-of-week, month, quarter |Done|
 | FR-FE-004 | Feature toggles shall be configurable via `configs/features_config.yaml` ||
-| FR-FE-005 | Save processed datasets to `data/processed/{ticker}_{date}.csv` ||
+| FR-FE-005 | Save processed datasets to `data/processed/{ticker}_{date}.csv` |DONE|
 
 #### Model Training
 

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pandas as pd
+import yaml
 from prefect import flow, task
 
 from pipelines.data_ingestion import (
@@ -19,6 +20,16 @@ from utils.feature_engineering import (
     compute_rsi,
 )
 
+DEFAULT_FEATURES_CONFIG = Path("configs/features_config.yaml")
+
+
+def _load_features_config(config_path: Path) -> dict:
+    """Load and return the feature toggles config from a YAML file."""
+    with config_path.open() as fh:
+        return yaml.safe_load(fh)
+
+
+# Implements FR-FE-005
 RAW_PATH = Path("data/raw/")
 RAW_PATH.mkdir(parents=True, exist_ok=True)
 PROCESSED_PATH = Path("data/processed/")
@@ -63,19 +74,51 @@ def _coerce_single_ticker_frame(
 @task
 def build_feature_dataframe(
     data: pd.DataFrame,
-    lag_days: tuple[int, ...] = (1, 5, 10, 20),
-    drop_na: bool = False,
+    config: dict,
 ) -> pd.DataFrame:
-    """Apply all FR-FE-001 and FR-FE-002 features in a fixed sequence."""
-    featured = compute_calendar_features(data)
-    featured = compute_close_lag_features(featured, lags=lag_days, drop_na=False)
-    featured = compute_rsi(featured, window=14)
-    featured = compute_macd(featured, fast=12, slow=26, signal=9)
-    featured = compute_bollinger_bands(featured, window=20, num_std=2.0)
-    featured = compute_atr(featured, window=14)
+    """Apply feature groups driven by configs/features_config.yaml.
 
+    Each group is only computed when its ``enabled`` flag is true.
+    Parameters (windows, lags, etc.) are read from config.
+    Implements: FR-FE-004
+    """
+    featured = data.copy()
 
-    if drop_na:
+    if config.get("calendar_features", {}).get("enabled", False):
+        featured = compute_calendar_features(featured)
+
+    lag_cfg = config.get("lag_features", {})
+    if lag_cfg.get("enabled", False):
+        featured = compute_close_lag_features(
+            featured, lags=lag_cfg["lags"], drop_na=False
+        )
+
+    rsi_cfg = config.get("rsi", {})
+    if rsi_cfg.get("enabled", False):
+        featured = compute_rsi(featured, window=rsi_cfg["window"])
+
+    macd_cfg = config.get("macd", {})
+    if macd_cfg.get("enabled", False):
+        featured = compute_macd(
+            featured,
+            fast=macd_cfg["fast"],
+            slow=macd_cfg["slow"],
+            signal=macd_cfg["signal"],
+        )
+
+    bb_cfg = config.get("bollinger_bands", {})
+    if bb_cfg.get("enabled", False):
+        featured = compute_bollinger_bands(
+            featured,
+            window=bb_cfg["window"],
+            num_std=bb_cfg["num_std"],
+        )
+
+    atr_cfg = config.get("atr", {})
+    if atr_cfg.get("enabled", False):
+        featured = compute_atr(featured, window=atr_cfg["window"])
+
+    if config.get("output", {}).get("drop_na", False):
         featured = featured.dropna()
 
     return featured
@@ -101,7 +144,7 @@ def feature_engineering_pipeline(
     period: str = "1y",
     save_raw: bool = True,
     save_processed: bool = True,
-    drop_na: bool = False,
+    config_path: Path = DEFAULT_FEATURES_CONFIG,
 ) -> pd.DataFrame:
     """
     End-to-end ingestion + feature generation pipeline.
@@ -125,7 +168,7 @@ def feature_engineering_pipeline(
     per_ticker_frames: list[pd.DataFrame] = []
     for symbol in tickers:
         ticker_data = _coerce_single_ticker_frame(downloaded, ticker=symbol)
-        featured = build_feature_dataframe(ticker_data, drop_na=drop_na)
+        featured = build_feature_dataframe(ticker_data, config=_load_features_config(config_path))
         featured = featured.copy()
         featured["Ticker"] = symbol
         per_ticker_frames.append(featured)
