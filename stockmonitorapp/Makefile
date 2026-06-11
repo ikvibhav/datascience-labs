@@ -31,6 +31,11 @@ setup:
 		echo ".env already exists, skipping"; \
 	fi
 
+precommit-setup:
+	@echo "Setting up pre-commit hooks..."
+	pre-commit install
+	@echo "Pre-commit hooks installed"
+
 python-venv:
 	@if [ -d venv ]; then \
 		echo "Virtual environment already exists, skipping"; \

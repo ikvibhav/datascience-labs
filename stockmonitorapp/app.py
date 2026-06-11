@@ -2,9 +2,16 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import streamlit as st
 from matplotlib import style
+
 from models.moving_average import moving_average
 from models.percentage_changes import yearly_percentage_change
 from utils.base_stock_reader import Snp500Reader
+from utils.feature_engineering import (
+    compute_atr,
+    compute_bollinger_bands,
+    compute_macd,
+    compute_rsi,
+)
 
 style.use("ggplot")
 
@@ -41,6 +48,10 @@ def main():
     # Add a checkbox for Yearly Percentage Changes
     st.sidebar.title("3. Yearly Percentage Changes")
     yearlypct = st.sidebar.checkbox("Yearly Percentage Changes", value=False)
+
+    # Add a checkbox for Technical Analysis
+    st.sidebar.title("4. Technical Analysis")
+    tech_analysis = st.sidebar.checkbox("Technical Analysis", value=False)
 
     if data is not None and not data.empty:
 
@@ -111,6 +122,130 @@ def main():
         st.write(f"Selected Period - {period_corr} years")
         df_pct = yearly_percentage_change(stock_list)
         st.write(df_pct.tail(int(period_corr)))
+ 
+    if tech_analysis:
+        st.subheader("Technical Analysis")
+        st.write(f"Selected Stock - {selected_stock}")
+
+        tab_rsi, tab_macd, tab_bb, tab_atr = st.tabs(
+            ["RSI", "MACD", "Bollinger Bands", "ATR"]
+        )
+
+        with tab_rsi:
+            rsi_df = compute_rsi(data, window=14)
+            st.write("Relative Strength Index (RSI)")
+            st.caption(
+                "0-100 momentum scale. Above 70 can indicate overbought; below 30 can indicate oversold."
+            )
+
+            fig, ax1 = plt.subplots(figsize=(10, 6))
+
+            # Left axis: price
+            ax1.plot(rsi_df.index, rsi_df["Close"], color="tab:blue", label="Close Price")
+            ax1.set_ylabel("Close Price ($)", color="tab:blue")
+            ax1.tick_params(axis="y", labelcolor="tab:blue")
+
+            # Right axis: RSI
+            ax2 = ax1.twinx()
+            ax2.plot(rsi_df.index, rsi_df["rsi_14"], color="tab:red", label="RSI (14)")
+            ax2.axhline(70, color="tab:red", linestyle="--", alpha=0.6)
+            ax2.axhline(30, color="tab:orange", linestyle="--", alpha=0.6)
+            ax2.set_ylim(0, 100)
+            ax2.set_ylabel("RSI", color="tab:red")
+            ax2.tick_params(axis="y", labelcolor="tab:red")
+
+            ax1.set_title(f"{selected_stock} Price vs RSI")
+            st.pyplot(fig)
+
+            st.write(rsi_df[["Close", "rsi_14"]].tail())
+
+        with tab_macd:
+            macd_df = compute_macd(data, fast=12, slow=26, signal=9)
+            st.write("MACD")
+            st.caption(
+                "Trend/momentum view. Histogram above 0 suggests bullish momentum; below 0 suggests bearish momentum."
+            )
+
+            fig, (ax1, ax2) = plt.subplots(
+                2, 1, figsize=(10, 8), sharex=True, gridspec_kw={"height_ratios": [3, 2]}
+            )
+
+            ax1.plot(macd_df.index, macd_df["Close"], color="tab:blue", label="Close Price")
+            ax1.set_ylabel("Price ($)")
+            ax1.legend(loc="upper left")
+
+            ax2.plot(macd_df.index, macd_df["macd_line"], color="tab:green", label="MACD Line")
+            ax2.plot(macd_df.index, macd_df["macd_signal"], color="tab:orange", label="Signal Line")
+            ax2.bar(
+                macd_df.index,
+                macd_df["macd_histogram"],
+                color="tab:gray",
+                alpha=0.4,
+                label="Histogram",
+            )
+            ax2.axhline(0, color="black", linewidth=1, alpha=0.6)
+            ax2.set_ylabel("MACD")
+            ax2.set_xlabel("Date")
+            ax2.legend(loc="upper left")
+
+            st.pyplot(fig)
+            st.write(macd_df[["macd_line", "macd_signal", "macd_histogram"]].tail())
+
+        with tab_bb:
+            bb_df = compute_bollinger_bands(data, window=20, num_std=2.0)
+            st.write("Bollinger Bands")
+            st.caption(
+                "Middle band is rolling average. Upper/lower bands expand when volatility rises."
+            )
+
+            fig, (ax1, ax2) = plt.subplots(
+                2, 1, figsize=(10, 8), sharex=True, gridspec_kw={"height_ratios": [4, 1]}
+            )
+
+            ax1.plot(bb_df.index, bb_df["Close"], color="tab:blue", label="Close")
+            ax1.plot(bb_df.index, bb_df["bb_middle"], color="tab:green", label="Middle (20)")
+            ax1.plot(bb_df.index, bb_df["bb_upper"], color="tab:red", linestyle="--", label="Upper")
+            ax1.plot(bb_df.index, bb_df["bb_lower"], color="tab:orange", linestyle="--", label="Lower")
+            ax1.fill_between(
+                bb_df.index,
+                bb_df["bb_lower"],
+                bb_df["bb_upper"],
+                color="tab:gray",
+                alpha=0.15,
+            )
+            ax1.set_ylabel("Price ($)")
+            ax1.legend(loc="upper left")
+
+            ax2.plot(bb_df.index, bb_df["bb_bandwidth"], color="tab:purple", label="Bandwidth")
+            ax2.set_ylabel("Bandwidth")
+            ax2.set_xlabel("Date")
+            ax2.legend(loc="upper left")
+
+            st.pyplot(fig)
+            st.write(bb_df[["bb_middle", "bb_upper", "bb_lower", "bb_bandwidth"]].tail())
+
+        with tab_atr:
+            atr_df = compute_atr(data, window=14)
+            st.write("Average True Range (ATR)")
+            st.caption(
+                "Volatility measure. Higher ATR means larger recent price swings."
+            )
+
+            fig, (ax1, ax2) = plt.subplots(
+                2, 1, figsize=(10, 8), sharex=True, gridspec_kw={"height_ratios": [3, 2]}
+            )
+
+            ax1.plot(atr_df.index, atr_df["Close"], color="tab:blue", label="Close Price")
+            ax1.set_ylabel("Price ($)")
+            ax1.legend(loc="upper left")
+
+            ax2.plot(atr_df.index, atr_df["atr_14"], color="tab:red", label="ATR (14)")
+            ax2.set_ylabel("ATR")
+            ax2.set_xlabel("Date")
+            ax2.legend(loc="upper left")
+
+            st.pyplot(fig)
+            st.write(atr_df[["true_range", "atr_14"]].tail())
 
 
 if __name__ == "__main__":
