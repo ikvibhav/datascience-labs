@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-import math
-
 import pandas as pd
 import pytest
-
 from utils.feature_engineering import (
     DEFAULT_CLOSE_LAGS,
     _normalize_lags,
@@ -39,7 +36,7 @@ def ohlcv_df(minimal_df) -> pd.DataFrame:
 
 
 # ---------------------------------------------------------------------------
-# FR-FE-001: acceptance criteria 1 – all four lag columns present
+# FR-FE-001: acceptance criteria 1 - Column Values
 # ---------------------------------------------------------------------------
 
 class TestLagColumnsPresent:
@@ -62,7 +59,7 @@ class TestLagColumnsPresent:
 
 
 # ---------------------------------------------------------------------------
-# FR-FE-001: acceptance criteria 2 – Close_lag_k[t] == Close[t-k]
+# FR-FE-001: acceptance criteria 2 – Lag Correctness (Close_lag_k[t] == Close[t-k])
 # ---------------------------------------------------------------------------
 
 class TestLagCorrectness:
@@ -84,7 +81,7 @@ class TestLagCorrectness:
 
     def test_lag_10_values(self, minimal_df):
         """With 10 rows and lag=10 only row index 10+ would have a value;
-        all rows in this fixture will be NaN – confirms warmup behaviour."""
+        all rows in this fixture will be NaN confirms warmup behaviour."""
         result = compute_close_lag_features(minimal_df, lags=[10])
         assert result["Close_lag_10"].isna().all()
 

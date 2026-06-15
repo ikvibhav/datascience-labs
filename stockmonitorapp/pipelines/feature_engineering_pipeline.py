@@ -2,8 +2,6 @@ from pathlib import Path
 
 import pandas as pd
 import yaml
-from prefect import flow, task
-
 from pipelines.data_ingestion import (
     EXPECTED_COLUMNS,
     build_filename,
@@ -11,6 +9,7 @@ from pipelines.data_ingestion import (
     save_data,
     validate_data,
 )
+from prefect import flow, task
 from utils.feature_engineering import (
     compute_atr,
     compute_bollinger_bands,
