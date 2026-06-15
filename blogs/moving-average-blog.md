@@ -1,12 +1,14 @@
-# Moving Averages in Stocks Market Data - From Noisy Prices to Clear Trend Signals (Pandas/Python Implementation)
+# MLOps Systems: Feature Engineering: Moving Averages for Noise-Resilient Trend Signals in Python
 
-When are building stock analytics pipelines, raw prices are often too noisy to drive stable decisions. A simple moving average (SMA) smooths those short-term fluctuations and reveals direction without adding heavy complexity.
+In production stock analytics, moving averages are essential because they convert noisy close-price streams into stable, model-friendly trend signals. Without this smoothing step, teams often face jittery alerts, unstable features, and weaker decision quality in downstream systems. In this post, I implement and explain a simple moving average (SMA) using Python and pandas as a practical feature-engineering primitive. By the end, you will know how to build and interpret SMA output in a way that is safe to integrate into a broader pipeline. This article is part of the MLOps Systems: Feature Engineering track, where we move from indicator mechanics to production-ready feature workflows.
 
-[Image Placeholder]
+![Image Placeholder](./images/snp500-moving-average-2024-2026.png)
+
+The above image shows of the close price of the S&P500 index along with the SMA over 50 and 200 days
 
 ## Problem
 
-Stocks Price series are full of small, random movements. If raw values are used directly in alerts, dashboards, or models, one can obtain jittery outputs and misleading triggers. The SMA (Simple Moving Average) provides a cleaner baseline by averaging values over a rolling window.
+Stocks Price series are full of small, random movements. If raw values are used directly in alerts, dashboards, or models, one can obtain jittery outputs and misleading triggers. The SMA provides a cleaner baseline by averaging values over a rolling window.
 
 ## Solution (Code)
 

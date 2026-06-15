@@ -21,6 +21,18 @@ When a user provides the `/code-to-blog` command and a path to a code file, foll
 6. **Add Visuals**: Include a placeholder for a featured image or diagram that visually represents the code's functionality or architecture.
 7. **Target Platform**: Keep the content suitable for platforms like Medium and Substack, ensuring it is engaging and informative for a technical audience.
 
+## Branding Template
+
+Use this consistent title style for each post:
+- `Series: Specific Topic: SubTopic/Practical Outcome`
+
+Use this fixed 5-sentence introduction template in order:
+1. Explain why the topic matters in production workflows.
+2. Explain what breaks or degrades without this method.
+3. Explain what the post implements in Python/pandas.
+4. Explain what practical capability the reader gains.
+5. Explain where this post fits in the broader series.
+
 ## Multi-Topic Policy
 
 When a file contains multiple blog-worthy concerns, generate separate posts around distinct themes rather than combining them into a single broad article.
