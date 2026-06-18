@@ -1,14 +1,14 @@
 # Building a Leakage-Safe RSI Feature in Pandas for Stock Pipelines
 
-The Relative Strength Index (RSI) is one of the most widely used momentum indicators in technical analysis, but its real engineering value shows up when it is implemented as a reusable, pipeline-safe feature. In this implementation, RSI is treated as a deterministic transformation over market data, which makes it suitable for analytics pipelines and downstream modeling.
+The Relative Strength Index (RSI) is one of the most widely used momentum indicators in technical analysis, but its real engineering value shows up when it is implemented as a reusable, pipeline-safe feature. In this implementation, I explain RSI and abstract it into a deterministic transformation over market data, which makes it suitable for analytics pipelines and any further downstream modeling.
 
-[Image Placeholder]
+![Image Placeholder](./images/snp500-rsi-6months-2026.png)
+
+The above image shows of the close price of the S&P500 index along with RSI over the first 6 months of 2026. The dotted lines 30 and 70 serve as critical threshholds to indicate potential market movement
 
 ## Why RSI Matters in Feature Engineering
 
-Raw price levels rarely say enough on their own. What often matters more is whether recent gains are consistently stronger than recent losses. RSI captures exactly that balance by turning directional price movement into a bounded momentum score between 0 and 100.
-
-That bounded scale is useful because it is easier to compare across dates and instruments than raw returns or price deltas.
+Raw price levels rarely say enough on their own. What often matters more is whether recent gains are consistently stronger than recent losses. RSI captures exactly that balance by turning directional price movement into a bounded momentum score between 0 and 100. This bounded scale is useful because it is easier to compare across dates and instruments than raw returns or price deltas.
 
 ## How This Implementation Works
 
