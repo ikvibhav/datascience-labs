@@ -91,7 +91,7 @@ The implementation makes several notable design decisions:
 - Warmup rows remain `NaN` because the function delegates missing-value policy to the caller. That is usually the right choice in pipelines, but it means downstream steps must decide whether to drop or preserve early rows.
 - If average loss becomes zero during a sustained uptrend, RSI approaches 100, which is mathematically expected but should be interpreted carefully in models.
 
-## Pro Tips
+## Usage and Considerations
 
 > **Pro Tips**
 > **Pro Tip 1** - Generate multiple RSI windows, such as 7, 14, and 21, when you want short- and medium-term momentum views in the same dataset.
