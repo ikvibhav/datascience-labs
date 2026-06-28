@@ -1,5 +1,4 @@
-# Building a Leakage-Safe RSI Feature in Pandas for Stock Pipelines
-
+# MLOps Systems: Feature Engineering: Relative Stength Index (RSI) in Python
 The Relative Strength Index (RSI) is one of the most widely used momentum indicators in technical analysis, but its real engineering value shows up when it is implemented as a reusable, pipeline-safe feature. In this implementation, I explain RSI and abstract it into a deterministic transformation over market data, which makes it suitable for analytics pipelines and any further downstream modeling. By the end, you will know how to build and interpret RSI output that is safe to integrate into a broader pipeline. This article is part of the MLOps Systems: Feature Engineering track, where we move from indicator mechanics to production-ready feature workflows.
 
 ![Image Placeholder](./images/snp500-rsi-6months-2026.png)
