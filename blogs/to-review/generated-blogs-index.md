@@ -28,3 +28,15 @@ Source path analyzed: `stockmonitorapp/utils/feature_engineering.py`
 - **Bollinger Bands**: Covers how `compute_bollinger_bands` uses a rolling SMA and `ddof=1` standard deviation to build self-scaling volatility bands, with a bandwidth feature for squeeze detection and detailed warmup and leakage guidance.
 - **Average True Range**: Explains True Range construction across all three day types (intraday, gap-up, gap-down), Wilder EMA smoothing, and practical ATR applications for position sizing, normalised volatility, and regime detection.
 - **Types of Technical Indicators in Finance**: A conceptual taxonomy of indicator classes — trend, momentum, volatility, volume, and calendar — anchored to the full pipeline implementation, with per-class pipeline constraints and a combined warmup summary.
+
+
+Post	Previous	Next
+1 — Moving Averages	—	Part 2 EMA Primer
+2 — EMA Primer	Part 1	Part 3 RSI
+3 — RSI	Part 2	Part 4 MACD
+4 — MACD	Part 3	Part 5 Bollinger Bands
+5 — Bollinger Bands	Part 4	Part 6 ATR
+6 — ATR	Part 5	Part 7 Wilder vs EMA
+7 — Wilder vs EMA	Part 6	Part 8 Taxonomy
+8 — Taxonomy	Part 7	—
+
