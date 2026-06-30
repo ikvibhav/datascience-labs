@@ -1,4 +1,4 @@
-# MLOps Systems: Feature Engineering: Moving Average Convergence Divergence (MACD) in Python
+# [Part 4/8] MLOps Systems: Feature Engineering: Moving Average Convergence Divergence (MACD) in Python
 
 Moving Average Convergence Divergence (MACD) is popular because it compresses multiple pieces of market behavior into a compact set of features: trend direction, momentum, and momentum acceleration. In a feature-engineering pipeline, MACD becomes a structured representation of how short-term movement compares with the longer-term baseline. In this implementation, I explain MACD and abstract it into code that is suitable for analytics pipelines and any further downstream modelling. his article is part of the MLOps Systems: Feature Engineering track, where we move from indicator mechanics to production-ready feature workflows.
 
@@ -107,3 +107,13 @@ Key takeaways:
 - Exponential smoothing in technical indicators
 - MACD histogram interpretation in momentum systems
 - Feature provenance and warmup handling in time-series pipelines
+
+---
+
+*Series: MLOps Systems — Feature Engineering*
+
+| | |
+|---|---|
+| **← Previous** | [Part 3/8 — RSI: Relative Strength Index](rsi-blog.md) |
+| **This post** | Part 4/8 — MACD |
+| **Next →** | [Part 5/8 — Bollinger Bands](bollinger-bands-blog.md) |

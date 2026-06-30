@@ -1,4 +1,4 @@
-# MLOps Systems: Feature Engineering: Moving Averages for Noise-Resilient Trend Signals in Python
+# [Part 1/8] MLOps Systems: Feature Engineering: Moving Averages for Noise-Resilient Trend Signals in Python
 
 In production stock analytics, moving averages are essential because they convert noisy close-price streams into stable, model-friendly trend signals. Without this smoothing step, teams often face jittery alerts, unstable features, and weaker decision quality in downstream systems. In this post, I implement and explain a simple moving average (SMA) using Python and pandas as a practical feature-engineering primitive. By the end, you will know how to build and interpret SMA output in a way that is safe to integrate into a broader pipeline. This article is part of the MLOps Systems: Feature Engineering track, where we move from indicator mechanics to production-ready feature workflows.
 
@@ -77,3 +77,12 @@ Key takeaways:
 - SMA is a low-cost, high-value smoothing primitive.
 - Rolling means are easy to integrate in pandas pipelines.
 - Production use should include clear edge-case and `NaN` handling policy.
+
+---
+
+*Series: MLOps Systems — Feature Engineering*
+
+| | |
+|---|---|
+| **This post** | Part 1/8 — Moving Averages |
+| **Next →** | [Part 2/8 — EMA Primer: From a Loop to pandas](exponential-moving-average-primer-blog.md) |
